@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobicomm Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <div class="mobile-menu-toggle" aria-label="Toggle menu" tabindex="0">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo-container">
+        <h1>Mobicomm</h1>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="profile-container" id="profileContainer">
+        <div class="profile-image" onclick="toggleDropdown()" tabindex="0" aria-label="Toggle profile menu" aria-expanded="false" aria-controls="profileDropdown">
+            <img src="../PNGs/user.png" alt="Admin Profile">
+        </div>
+        <div class="profile-info">
+            <h3>Admin AJ</h3>
+            <p>Admin ID: #A12345</p>
+        </div>
+        <!-- Dropdown Menu -->
+        <div class="profile-dropdown" id="profileDropdown" aria-hidden="true">
+            <ul>
+                <li><a href="#" id="settingnav" onclick="setActive(this)"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#" onclick="setActive(this)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div class="sidebar-container" role="navigation" aria-label="Main Navigation">
+        <nav class="nav flex-column nav-container">
+            <a class="nav-link active" href="#" id="dashboard" aria-current="page">
+                <i class="fas fa-home"></i> Admin Dashboard
+            </a>
+            <a class="nav-link" href="#" id="plansNav">
+                <i class="fas fa-users"></i> Subscribers Management
+            </a>
+            <a class="nav-link" href="plan-managements.html" id="manageplansNav">
+                <i class="fas fa-cog"></i> Plans Management
+            </a>
+            <a class="nav-link" href="profile.html" id="profilenav">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content" role="main">
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card" aria-labelledby="totalSubscribers">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-info">
+                    <h3 id="totalSubscribers">12,345</h3>
+                    <p>Total Subscribers</p>
+                </div>
+            </div>
+            <div class="card" aria-labelledby="activePlans">
+                <div class="card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-info">
+                    <h3 id="activePlans">8,765</h3>
+                    <p>Active Plans</p>
+                </div>
+            </div>
+            <div class="card" aria-labelledby="expiringPlans">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="card-info">
+                    <h3 id="expiringPlans">234</h3>
+                    <p>Expiring Plans</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Refresh Indicator -->
+        <div class="refresh-indicator" id="refreshIndicator" aria-live="polite">
+            <span class="refresh-icon"><i class="fas fa-sync-alt"></i></span>
+            <span class="refresh-text">Last updated: <span id="lastUpdatedTime">Just now</span></span>
+            <button id="manualRefreshBtn" class="refresh-button" aria-label="Refresh data">
+                <i class="fas fa-redo-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Sorting & Filtering Options -->
+        <div class="filter-container">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search Subscriber..." onkeyup="filterTable()" aria-label="Search subscribers">
+            </div>
+            <div class="filter-options">
+                <label for="rowsPerPage" class="select-label">Show:</label>
+                <select id="rowsPerPage" aria-label="Rows per page" onchange="updateRowsPerPage()">
+                    <option value="5">5 rows</option>
+                    <option value="10">10 rows</option>
+                    <option value="15">15 rows</option>
+                </select>
+                <label for="sortFilter" class="select-label">Sort:</label>
+                <select id="sortFilter" aria-label="Sort by expiry date" onchange="sortTable()">
+                    <option value="">Sort by Expiry Date</option>
+                    <option value="asc">Earliest First</option>
+                    <option value="desc">Latest First</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Expiring Plans Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Expiring Plans (Next 3 Days)</h2>
+            </div>
+            <table aria-label="Subscribers with expiring plans">
+                <thead>
+                    <tr>
+                        <th scope="col">Subscriber Name</th>
+                        <th scope="col">Mobile Number</th>
+                        <th scope="col">Current Plan</th>
+                        <th scope="col">Expiry Date</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="plansTable">
+                    <!-- 10 Rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>No matching subscribers found</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" role="navigation" aria-label="Table pagination"></div>
+    </div>
+
+    <!-- View History Modal -->
+    <div id="historyModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-content" role="document">
+            <button class="close-btn" onclick="closeModal()" aria-label="Close">&times;</button>
+            <h2 id="modalTitle">Subscriber Recharge History</h2>
+            <div class="subscriber-info" id="subscriberInfo">
+                <!-- Dynamic subscriber info will be inserted here -->
+            </div>
+
+            <!-- History Table -->
+            <div class="modal-table-container">
+                <table aria-label="Recharge history">
+                    <thead>
+                        <tr>
+                            <th scope="col">Plan Name</th>
+                            <th scope="col">Recharge Date</th>
+                            <th scope="col">Payment Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Export Button -->
+            <div class="modal-actions">
+                <button onclick="exportCSV()" class="export-btn csv-btn">
+                    <i class="fas fa-file-csv"></i> Export as CSV
+                </button>
+                <button onclick="exportPDF()" class="export-btn pdf-btn">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" style="display: none;" aria-live="polite"></div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

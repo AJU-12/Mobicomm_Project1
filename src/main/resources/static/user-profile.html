@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobicomm - Customer Dashboard</title>
+    
+    <link rel="stylesheet" href="user-profile.css">
+    
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <video autoplay loop muted playsinline class="bg-video">
+        <source src="Peach Ash Grey Gradient Color and Style Video Background (1).mp4" type="video/mp4">
+    </video>
+
+    <div class="dashboard-container">
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="header-gradient">
+                <div class="logo">Mobicomm</div>
+            </div>
+            
+            <!-- Add this right after the header-gradient div in the profile section -->
+<div class="change-bg-icon" id="change-bg-btn">
+    <i class="fas fa-image"></i>
+</div>
+
+            <div class="profile-content" id="user-profile">
+                <!-- Profile Picture -->
+                <div class="profile-pic" id="profile-pic"></div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Name</label>
+                        <input type="text" id="userName" readonly>
+                    </div>
+                    <div class="info-item">
+                        <label>Alternate Mobile Number</label>
+                        <input type="text" id="alternateNumber" readonly>
+                    </div>
+                    <div class="info-item">
+                        <label>Mobile Number</label>
+                        <input type="text" id="mobileNumber" readonly>
+                    </div>
+                    <div class="info-item">
+                        <label>Email Address</label>
+                        <input type="email" id="emailAddress" placeholder="Enter email">
+                        <button class="verify-btn" id="verifyEmailBtn">Verify Email</button>
+                    </div>
+                    <div class="info-item">
+                        <label>Residential Address</label>
+                        <input type="text" id="residentialAddress" readonly>
+                    </div>
+                    <div class="info-item">
+                        <label>Circle</label>
+                        <input type="text" id="circle" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="right-sidebar">
+            <!-- Pack Details -->
+            <div>
+                <h3 class="section-title">Pack Details</h3>
+
+                <div class="pack-container">
+                    <div class="pack-header">
+                        <div class="price">$599</div>
+                        <div class="plan-details-container">
+                            <div class="plan-name">Superhero Unlimited</div>
+                            <div class="plan-details">3gb data/day</div>
+                            <div class="plan-details">28 days</div>
+                        </div>
+                    </div>
+
+                    <div class="data-left">1gb data left</div>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+
+                    <div class="expiry">Pack valid till 15 Apr, 2025</div>
+                    <button class="recharge-btn">Recharge Again</button>
+                </div>
+            </div>
+
+            <!-- Quick Links Section -->
+            <div>
+                <h3 class="section-title">Quick Links</h3>
+
+                <div class="links-grid">
+                    <div class="link-item" id="recharge-history-link">
+                        <div class="link-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="link-title">Recharge History</div>
+                    </div>
+                    <a href="#" style="text-decoration: none;" id="navi-recharge">
+                        <div class="link-item">
+                            <div class="link-icon">
+                                <i class="fas fa-list-alt"></i>
+                            </div>
+                            <div class="link-title">Prepaid Plans</div>
+                        </div>
+                    </a>
+                    <a href="../support-page/support.html">
+                        <div class="link-item">
+                            <div class="link-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="link-title">Support</div>
+                        </div>
+                    </a>
+                    <a href="login copy.html">
+                        <div class="link-item">
+                            <div class="link-icon">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </div>
+                            <div class="link-title">Log Out</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div> <!-- Closing dashboard-container here -->
+
+    <!-- Recharge History Modal -->
+    <div class="modal-overlay" id="recharge-history-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-history"></i>
+                    <span>Recharge History</span>
+                </div>
+                <div class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="filter-row">
+                    <div class="date-filter">
+                        <input type="date" class="date-input" placeholder="From Date">
+                        <input type="date" class="date-input" placeholder="To Date">
+                        <button class="filter-btn">
+                            <i class="fas fa-filter"></i>
+                            Filter
+                        </button>
+                    </div>
+                    <div class="view-options">
+                        <div class="view-btn active">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="view-btn">
+                            <i class="fas fa-th-large"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-list">
+                    <!-- Recharge History Card 1 -->
+                    <div class="history-card">
+                        <div class="plan-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="history-details">
+                            <h4>Superhero Unlimited</h4>
+                            <div class="plan-row">
+                                <div class="plan-feature">
+                                    <i class="fas fa-wifi"></i>
+                                    <span>3GB/day</span>
+                                </div>
+                                <div class="plan-feature">
+                                    <i class="fas fa-phone-alt"></i>
+                                    <span>Unlimited Calls</span>
+                                </div>
+                                <div class="plan-feature">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>28 days</span>
+                                </div>
+                            </div>
+                            <div class="transaction-id">Transaction ID: TX8870204045001</div>
+                        </div>
+                        <div class="price-container">
+                            <div class="recharge-price">₹599</div>
+                            <div class="recharge-status status-success">
+                                <i class="fas fa-check-circle"></i>
+                                Successful
+                            </div>
+                            <div class="recharge-date">Mar 07, 2025 • 10:30 AM</div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State (Hidden by default) -->
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="empty-title">No recharge history found</div>
+                        <div class="empty-message">Try changing the filter criteria or make your first recharge</div>
+                        <button class="recharge-btn">Recharge Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    <!-- Add this modal for background selection right before the closing body tag -->
+<div class="modal-overlay" id="background-modal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-title">
+                <i class="fas fa-image"></i>
+                <span>Choose Background</span>
+            </div>
+            <div class="close-modal" id="close-bg-modal">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="bg-grid">
+                <div class="bg-option" data-bg="gradient-purple-pink">
+                    <div class="bg-preview gradient-purple-pink"></div>
+                    <span>Purple Pink</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-blue-cyan">
+                    <div class="bg-preview gradient-blue-cyan"></div>
+                    <span>Blue Cyan</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-orange-red">
+                    <div class="bg-preview gradient-orange-red"></div>
+                    <span>Orange Red</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-green-teal">
+                    <div class="bg-preview gradient-green-teal"></div>
+                    <span>Green Teal</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-yellow-orange">
+                    <div class="bg-preview gradient-yellow-orange"></div>
+                    <span>Yellow Orange</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-indigo-purple">
+                    <div class="bg-preview gradient-indigo-purple"></div>
+                    <span>Indigo Purple</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-red-pink">
+                    <div class="bg-preview gradient-red-pink"></div>
+                    <span>Red Pink</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-teal-blue">
+                    <div class="bg-preview gradient-teal-blue"></div>
+                    <span>Teal Blue</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-black-gray">
+                    <div class="bg-preview gradient-black-gray"></div>
+                    <span>Black Gray</span>
+                </div>
+                <div class="bg-option" data-bg="gradient-violet-magenta">
+                    <div class="bg-preview gradient-violet-magenta"></div>
+                    <span>Violet Magenta</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ <script src="user-profile.js"></script>
+</body>
+</html>

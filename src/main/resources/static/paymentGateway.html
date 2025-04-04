@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Secure and seamless payment gateway for mobile recharge.">
+    <title>Mobicomm - Payment Gateway</title>
+    <link rel="stylesheet" href="paymentGateway.css" />
+<link rel="icon" type="image/png" href="path/to/favicon.ico">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Add this in the head section, after the Stripe.js script -->
+    <!-- Remove the duplicate Stripe initialization script from head -->
+    <script src="stripe-elements.js" defer></script>
+    
+    <!-- Keep only this script at the end of the body -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stripe = Stripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
+        const elements = stripe.elements();
+        const card = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    '::placeholder': {
+                        color: '#aab7c4'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a'
+                }
+            }
+        });
+        
+        card.mount('#card-element-container');
+        
+        card.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        if (form) {
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                const {error, paymentMethod} = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                    billing_details: {
+                        name: document.getElementById('card-holder-name').value
+                    }
+                });
+                
+                if (error) {
+                    document.getElementById('card-errors').textContent = error.message;
+                } else {
+                    processPayment(paymentMethod.id);
+                }
+            });
+        }
+    });
+    </script>
+    
+  </head>
+  
+  <body>
+    <div class="logo-container">
+      <h1 class="logo">Mobicomm</h1>
+    </div>
+
+    <div class="header-container">
+      <h1 class="payment-header">Payment Gateway</h1>
+    </div>
+
+</div>
+<div class="payment-container">
+    <div class="first-row">
+        <!-- First Column: Browse by Category -->
+        <div class="browse-category-container">
+            <p>Payment Methods</p>
+            <button class="category-button active" id="rechargeoffers-button">Debit/Credit/ATM Card</button>
+            <button class="category-button" id="upi-payment-button">UPI Payment</button>
+            <button class="category-button" id="net-banking-button">Net Banking</button>
+        </div>
+
+        <!-- Payment Inputs (will be dynamically updated) -->
+        <div class="payment-inputs" id="payment-inputs">
+            <!-- Default content for Debit/Credit/ATM Card -->
+            <h3 class="payment-title">Credit/Debit/ATM Card</h3>
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="card-holder-name">Enter Card Holder Name</label>
+                    <input type="text" id="card-holder-name" placeholder="Card Holder Name">
+                </div>
+                <div class="input-field" style="grid-column: span 2;">
+                    <label for="card-element-container">Card Details</label>
+                    <div id="card-element-container" style="padding: 10px; border: 1px solid #ccc; border-radius: 8px; height: 40px;"></div>
+                    <div id="card-errors" role="alert" style="color: #fa755a; margin-top: 8px; font-size: 14px;"></div>
+                </div>
+            </div>
+            <button class="pay-button" id="pay-now">Pay Now</button>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+            <div class="summary-header">
+                <h3>Payment Summary</h3>
+                <span class="price-amount" id="summary-price"></span>
+            </div>
+            <p class="subtext" id="summary-phone"></p>
+            <p class="plan-details" id="summary-plan-details"></p>
+            <hr>
+            <div class="amount-payable">
+                <span>Amount Payable</span>
+                <span class="price-amount" id="summary-total">₹500</span>
+            </div>
+            <div class="secure-pay-container">
+                <div><img src="../PNGs/shield.png" alt="Secure Shield" class="secure-icon"></div>
+                <div><span class="secure-payments">100% Secure Payments</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <!-- Payment Success Popup -->
+ <div class="payment-success-popup" id="payment-success-popup">
+    <div class="payment-success-content">
+        <div class="loader" id="loader"></div>
+        <h3>Processing Payment</h3>
+        <p>Your payment is being processed. Please wait...</p>
+    </div>
+</div>
+
+
+
+<!-- Keep your existing HTML structure but update the script section -->
+
+<!-- Add this script at the end of your file, before the closing body tag -->
+<script>
+// Initialize variables for payment processing
+let currentTransactionId = '';
+let currentDateTime = '';
+const priceAmount = document.querySelector(".price-amount");
+
+// Update payment summary with data from URL parameters
+// Replace the existing DOMContentLoaded listener with this single version
+document.addEventListener('DOMContentLoaded', function() {
+    // Load plan data from URL params or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const planDetails = {
+        id: urlParams.get('planId') || localStorage.getItem('selectedPlanId'),
+        name: urlParams.get('planName') || localStorage.getItem('planName'),
+        price: urlParams.get('planPrice') || localStorage.getItem('planPrice'),
+        duration: urlParams.get('planDuration') || localStorage.getItem('planDuration'),
+        dataAmount: urlParams.get('dataAmount') || localStorage.getItem('dataAmount'),
+        phoneNumber: urlParams.get('phoneNumber') || localStorage.getItem('phoneNumber')
+    };
+
+    // Update UI with plan details
+    if (planDetails.price) {
+        document.querySelectorAll('.price-amount').forEach(el => {
+            el.textContent = `₹${planDetails.price}`;
+        });
+    }
+    
+    if (planDetails.phoneNumber) {
+        document.getElementById('summary-phone').textContent = 
+            `Recharge for ${planDetails.phoneNumber}`;
+    }
+    
+    if (planDetails.name && planDetails.duration) {
+        document.getElementById('summary-plan-details').innerHTML = 
+            `${planDetails.name} ${planDetails.duration} Validity <span class="dot"></span> 
+            <span id="summary-data">${planDetails.dataAmount || '2GB/Day'}</span>`;
+    }
+
+    // Initialize payment methods
+    setupPaymentMethodButtons();
+    attachPaymentButtonEvent();
+});
+    const planId = urlParams.get('planId');
+    const planName = urlParams.get('planName');
+    const planDuration = urlParams.get('planDuration');
+    const planPrice = urlParams.get('planPrice');
+    const phoneNumber = urlParams.get('phoneNumber') || localStorage.getItem('phoneNumber') || '8870204045';
+    const dataAmount = urlParams.get('dataAmount') || '2GB/Day';
+    
+    console.log("URL Parameters:", {planId, planName, planDuration, planPrice, phoneNumber, dataAmount});
+    
+    // Update payment summary with dynamic data
+    const summaryPriceElements = document.querySelectorAll('.price-amount');
+    summaryPriceElements.forEach(element => {
+        if (planPrice) {
+            element.textContent = '₹' + planPrice;
+        }
+    });
+    
+    if (phoneNumber) {
+        document.getElementById('summary-phone').textContent = 'Recharge for ' + phoneNumber;
+    }
+    
+    if (planName && planDuration) {
+        document.getElementById('summary-plan-details').innerHTML = 
+            planName + ' ' + planDuration + ' Validity <span class="dot"></span> <span id="summary-data">' + dataAmount + '</span>';
+    } else {
+        // Try to get plan details from localStorage if not in URL
+        const storedPlanName = localStorage.getItem('planName');
+        const storedPlanDuration = localStorage.getItem('planDuration');
+        const storedDataAmount = localStorage.getItem('dataAmount');
+        
+        if (storedPlanName && storedPlanDuration) {
+            document.getElementById('summary-plan-details').innerHTML = 
+                storedPlanName + ' ' + storedPlanDuration + ' Validity <span class="dot"></span> <span id="summary-data">' + 
+                (storedDataAmount || dataAmount) + '</span>';
+        }
+    }
+    
+    // Store plan details for payment processing
+    if (planId) localStorage.setItem('selectedPlanId', planId);
+    if (planPrice) localStorage.setItem('planPrice', planPrice);
+    if (phoneNumber) localStorage.setItem('phoneNumber', phoneNumber);
+    if (planName) localStorage.setItem('planName', planName);
+    if (planDuration) localStorage.setItem('planDuration', planDuration);
+    if (dataAmount) localStorage.setItem('dataAmount', dataAmount);
+    
+    // Set up payment method buttons
+    setupPaymentMethodButtons();
+    
+    // Initialize Stripe elements if using card payment
+    if (typeof initializeStripeElements === 'function') {
+        initializeStripeElements();
+    }
+});
+
+// Set up payment method buttons
+function setupPaymentMethodButtons() {
+    const buttons = document.querySelectorAll('.category-button');
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            updatePaymentInputs(button.id);
+        });
+    });
+}
+
+function updatePaymentInputs(method) {
+    const container = document.getElementById('payment-inputs');
+    
+    switch(method) {
+        case 'rechargeoffers-button':
+            container.innerHTML = `
+                <form id="card-payment-form">
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="card-holder-name">Card Holder Name</label>
+                            <input type="text" id="card-holder-name" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Card Details</label>
+                            <div id="card-element-container"></div>
+                            <div id="card-errors" role="alert"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="pay-button">Pay Now</button>
+                </form>
+            `;
+            initializeStripeElements();
+            break;
+            
+        case 'upi-payment-button':
+            container.innerHTML = `
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="upi-id">UPI ID</label>
+                        <input type="text" id="upi-id" placeholder="username@upi" required>
+                    </div>
+                    <button class="pay-button" id="verify-pay-button">Verify & Pay</button>
+                </div>
+            `;
+            break;
+            
+        case 'net-banking-button':
+            container.innerHTML = `
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="bank-name">Select Bank</label>
+                        <select id="bank-name" required>
+                            <option value="">Select your bank</option>
+                            <option value="SBI">State Bank of India</option>
+                            <option value="HDFC">HDFC Bank</option>
+                            <option value="ICICI">ICICI Bank</option>
+                        </select>
+                    </div>
+                    <button class="pay-button" id="pay-now">Pay Now</button>
+                </div>
+            `;
+            break;
+    }
+}
+
+// Validate card details
+function validateCardDetails() {
+    const cardHolderName = document.getElementById('card-holder-name').value;
+
+    if (!cardHolderName || cardHolderName.length < 3) {
+        alert('Please enter a valid card holder name (at least 3 characters)');
+        return false;
+    }
+    
+    // If using Stripe Elements, check for card errors
+    const cardErrors = document.getElementById('card-errors');
+    if (cardErrors && cardErrors.textContent) {
+        alert('Please fix the card errors before proceeding');
+        return false;
+    }
+
+    return true;
+}
+
+// Validate UPI ID
+function validateUPI(upiId) {
+    if (!upiId) {
+        alert('Please enter a UPI ID');
+        return false;
+    }
+    
+    const upiRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
+    if (!upiRegex.test(upiId)) {
+        alert('Please enter a valid UPI ID (format: username@bankname)');
+        return false;
+    }
+    
+    return true;
+}
+
+// Validate net banking
+function validateNetBanking() {
+    const bankName = document.getElementById('bank-name').value;
+    if (!bankName) {
+        alert('Please select a bank');
+        return false;
+    }
+    return true;
+}
+
+// Generate transaction ID
+function generateTransactionId() {
+    return 'TXN' + Date.now() + Math.floor(Math.random() * 1000);
+}
+
+// Get current date time
+function getCurrentDateTime() {
+    return new Date().toLocaleString('en-IN');
+}
+
+// Show payment success popup
+function showPaymentSuccessPopup() {
+    const paymentPopup = document.getElementById("payment-success-popup");
+    paymentPopup.classList.add("show");
+    
+    // Get data for transaction
+    const userId = localStorage.getItem("userId");
+    const selectedPlanId = localStorage.getItem("selectedPlanId");
+    const amount = parseFloat(document.querySelector(".price-amount").textContent.replace("₹", ""));
+    
+    // Create transaction data
+    const transactionData = {
+        user: { id: userId },
+        plan: { id: selectedPlanId },
+        amount: amount,
+        transactionId: currentTransactionId,
+        paymentMethod: getActivePaymentMethod(),
+        status: "PENDING"  // Standardized to use status consistently
+    };
+    
+    // Save transaction
+    fetch("http://localhost:8085/transactions/save", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(transactionData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to save transaction');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Transaction saved:", data);
+        
+        // Simulate payment processing
+        setTimeout(() => {
+            document.getElementById("loader").style.display = "none";
+            
+            // Update transaction status to SUCCESS
+            updateTransactionStatus(currentTransactionId, "SUCCESS");
+            
+            // Show success message with both buttons
+            document.querySelector(".payment-success-content").innerHTML = `
+                <img src="../PNGs/check.png" alt="Success Icon" class="success-icon">
+                <h3>Payment Successful</h3>
+                <p>Your transaction ID: ${currentTransactionId}</p>
+                <p>Date & Time: ${currentDateTime}</p>
+                <div class="success-buttons">
+                    <button class="home-button" onclick="window.location.href='dashboard.html'">Back to Home</button>
+                    <button class="receipt-button" onclick="downloadInvoice()">Download Invoice</button>
+                </div>
+            `;
+        }, 2000);
+    })
+    .catch(error => {
+        console.error("Error saving transaction:", error);
+        document.getElementById("loader").style.display = "none";
+        document.querySelector(".payment-success-content").innerHTML = `
+            <h3 style="color: red;">Payment Failed</h3>
+            <p>Something went wrong. Please try again.</p>
+            <button class="home-button" onclick="window.location.href='paymentGateway.html'">Try Again</button>
+        `;
+    });
+}
+
+// Get active payment method
+function getActivePaymentMethod() {
+    const activeButton = document.querySelector('.category-button.active');
+    if (activeButton.id === 'rechargeoffers-button') {
+        return "CARD";
+    } else if (activeButton.id === 'upi-payment-button') {
+        return "UPI";
+    } else if (activeButton.id === 'net-banking-button') {
+        return "NET_BANKING";
+    }
+    return "UNKNOWN";
+}
+
+// Update transaction status
+function updateTransactionStatus(transactionId, status) {
+    fetch("http://localhost:8085/transactions/update-status", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            transactionId: transactionId,
+            status: status
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update transaction status');
+        }
+        return response.json();
+    })
+    .then(data => console.log("Transaction status updated:", data))
+    .catch(error => console.error("Error updating transaction status:", error));
+}
+
+// Attach event listeners to payment buttons
+function attachPaymentButtonEvent() {
+    const payNowButton = document.getElementById('pay-now');
+    const verifyPayButton = document.getElementById('verify-pay-button');
+
+    if (payNowButton) {
+        payNowButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const activeButton = document.querySelector('.category-button.active');
+            let isValid = false;
+
+            if (activeButton.id === 'rechargeoffers-button') {
+                isValid = validateCardDetails();
+                if (isValid) {
+                    currentTransactionId = generateTransactionId();
+                    currentDateTime = getCurrentDateTime();
+                    const amount = parseFloat(document.querySelector(".price-amount").textContent.replace("₹", ""));
+                    const userId = localStorage.getItem("userId");
+                    const selectedPlanId = localStorage.getItem("selectedPlanId");
+
+                    // Process payment using Stripe Elements if available
+                    if (typeof window.processStripePayment === 'function') {
+                        window.processStripePayment(currentTransactionId, amount, userId, selectedPlanId);
+                    } else {
+                        // Fallback to simulated payment
+                        showPaymentSuccessPopup();
+                    }
+                }
+            } else if (activeButton.id === 'net-banking-button') {
+                isValid = validateNetBanking();
+                if (isValid) {
+                    currentTransactionId = generateTransactionId();
+                    currentDateTime = getCurrentDateTime();
+                    showPaymentSuccessPopup();
+                }
+            } else if (activeButton.id === 'upi-payment-button') {
+                const upiId = document.getElementById('upi-id').value;
+                isValid = validateUPI(upiId);
+                if (isValid) {
+                    currentTransactionId = generateTransactionId();
+                    currentDateTime = getCurrentDateTime();
+                    showPaymentSuccessPopup();
+                }
+            }
+        });
+    }
+
+    if (verifyPayButton) {
+        verifyPayButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const upiId = document.getElementById('upi-id').value;
+            if (validateUPI(upiId)) {
+                currentTransactionId = generateTransactionId();
+                currentDateTime = getCurrentDateTime();
+                showPaymentSuccessPopup();
+            }
+        });
+    }
+}
+
+// Generate receipt
+function generateReceipt() {
+    const planName = document.getElementById('summary-plan-details').textContent.split('<span')[0].trim();
+    const amount = document.querySelector(".price-amount").textContent;
+    const phoneNumber = document.getElementById('summary-phone').textContent.replace('Recharge for ', '');
+    
+    const receiptWindow = window.open('', '_blank');
+    receiptWindow.document.write(`
+        <html>
+        <head>
+            <title>Payment Receipt</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+                .receipt { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+                h2 { color: #007bff; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                td { padding: 8px 0; }
+                .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #777; }
+                .success { color: green; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <div class="header">
+                    <div class="logo">Mobicomm</div>
+                    <h2>Payment Receipt</h2>
+                    <p>Transaction ID: ${currentTransactionId}</p>
+                    <p>Date & Time: ${currentDateTime}</p>
+                </div>
+                
+                <div>
+                    <h3>Customer Information</h3>
+                    <p>Phone Number: ${phoneNumber}</p>
+                </div>
+                
+                <div>
+                    <h3>Order Summary</h3>
+                    <table>
+                        <tr>
+                            <td><strong>Description</strong></td>
+                            <td style="text-align: right;"><strong>Amount</strong></td>
+                        </tr>
+                        <tr>
+                            <td>${planName}<br>
+                            <small>Validity: ${document.getElementById('summary-data').textContent}</small></td>
+                            <td style="text-align: right;">${amount}</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td><strong>Total</strong></td>
+                            <td style="text-align: right;"><strong>${amount}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div>
+                    <h3>Payment Information</h3>
+                    <p><strong>Payment Method:</strong> ${getActivePaymentMethod()}</p>
+                    <p><strong>Status:</strong> <span class="success">Success</span></p>
+                </div>
+                
+                <div class="footer">
+                    <p>This is a computer-generated receipt and does not require a signature.</p>
+                    <p>Thank you for choosing Mobicomm!</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+    receiptWindow.document.close();
+}
+</script>
+
+<!-- Fix the script tag placement and invoice function -->
+<script>
+// At the end of your script, add this function
+function downloadInvoice() {
+    const planName = document.getElementById('summary-plan-details').textContent.split('<span')[0].trim();
+    const amount = document.querySelector(".price-amount").textContent;
+    const phoneNumber = document.getElementById('summary-phone').textContent.replace('Recharge for ', '');
+    
+    // Create invoice HTML content
+    const invoiceContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Mobicomm Invoice</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+                .invoice { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+                .logo { font-size: 28px; font-weight: bold; color: #007bff; margin-bottom: 10px; }
+                h2 { color: #007bff; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f8f9fa; }
+                .amount { text-align: right; }
+                .total-row { font-weight: bold; background-color: #f8f9fa; }
+                .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #ddd; padding-top: 20px; }
+                .success { color: green; font-weight: bold; }
+                @media print {
+                    .invoice { border: none; }
+                    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice">
+                <div class="header">
+                    <div class="logo">Mobicomm</div>
+                    <h2>INVOICE</h2>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <strong>Invoice To:</strong><br>
+                        Customer<br>
+                        ${phoneNumber}
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>Invoice Details:</strong><br>
+                        Invoice #: INV-${currentTransactionId.substring(3, 10)}<br>
+                        Date: ${new Date().toLocaleDateString('en-IN')}<br>
+                        Transaction ID: ${currentTransactionId}
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Validity</th>
+                            <th class="amount">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${planName}</td>
+                            <td>${document.getElementById('summary-data').textContent}</td>
+                            <td class="amount">${amount}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="2"><strong>Total</strong></td>
+                            <td class="amount"><strong>${amount}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin: 20px 0;">
+                    <strong>Payment Information:</strong><br>
+                    Payment Method: ${getActivePaymentMethod()}<br>
+                    Status: <span class="success">Paid</span>
+                </div>
+                
+                <div class="footer">
+                    <p>This is a computer-generated invoice and does not require a signature.</p>
+                    <p>Thank you for choosing Mobicomm!</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Create a Blob with the HTML content
+    const blob = new Blob([invoiceContent], { type: 'text/html' });
+    
+    // Create a download link
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Mobicomm_Invoice_${currentTransactionId}.html`;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Add CSS for the success buttons
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+.success-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+}
+.home-button, .receipt-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.home-button {
+    background-color: #007bff;
+    color: white;
+}
+.receipt-button {
+    background-color: #28a745;
+    color: white;
+}
+.home-button:hover, .receipt-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+</style>
+`);
+</script>

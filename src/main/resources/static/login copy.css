@@ -1,0 +1,220 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+
+}
+
+.bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1; /* Push it behind all content */
+  }
+
+.main-container {
+    width: 70%;
+    height: 600px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    overflow: hidden;
+}
+
+.video-section {
+    flex: 1;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.login-section {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 320px;
+}
+
+.login-title {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: #1d4ed8;
+}
+
+.button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.resend-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.resend-link:hover {
+    text-decoration: underline;
+}
+
+#otpForm {
+    display: none;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    background-color: white;
+    color: #333;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease-out;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.toast.error {
+    border-left: 4px solid #dc2626;
+}
+
+.toast.success {
+    border-left: 4px solid #059669;
+}
+
+.input-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.input-feedback.error {
+    color: #dc2626;
+}
+
+.input-feedback.success {
+    color: #059669;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-container {
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        width: 100%;
+        flex-direction: column;
+        height: auto;
+    }
+
+    .video-section {
+        height: 300px;
+    }
+
+    .login-section {
+        padding: 2rem 1rem;
+    }
+}

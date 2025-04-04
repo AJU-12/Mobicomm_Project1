@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobicomm Admin - Subscriber Management</title>
+    
+    <!-- Security Meta Tags for CSRF Protection -->
+    <meta name="csrf-token" id="csrf-token" content="">
+    
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+    
+    <!-- Local Stylesheets -->
+    <link rel="stylesheet" href="sub-managements.css">
+    
+    <!-- PDF Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo-container">
+        <h1>Mobicomm</h1>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="profile-container" id="profileContainer">
+        <div class="profile-image" onclick="toggleDropdown()">
+            <img id="adminProfileImage" src="" alt="Admin Profile">
+        </div>
+        <div class="profile-info">
+            <h3 id="adminName">Admin</h3>
+            <p id="adminId">Admin ID: #</p>
+        </div>
+        <!-- Dropdown Menu -->
+        <div class="profile-dropdown" id="profileDropdown">
+            <ul>
+                <li><a href="#" id="settingnav"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#" id="logoutNav"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Container -->
+    <div class="sidebar-container">
+        <nav class="nav flex-column nav-container">
+            <a class="nav-link" href="admin.html" id="dashboard">
+                <i class="fas fa-home"></i> Admin Dashboard
+            </a>
+            <a class="nav-link active" href="sub-managements.html" id="plansNav">
+                <i class="fas fa-users"></i> Subscribers Management
+            </a>
+            <a class="nav-link" href="plan-managements.html" id="manageplansNav">
+                <i class="fas fa-cog"></i> Plans Management
+            </a>
+            <a class="nav-link" href="profile.html" id="profilenav">
+                <i class="fas fa-user"></i> Profile & Settings
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="subscriber-page-title">Subscriber Management</h1>
+            
+            <!-- Notification Icon -->
+            <div id="notificationIcon" class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <div id="notificationBadge" class="notification-badge">0</div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon active-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Active Subscribers</h3>
+                    <p id="activeSubscribersCount" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon inactive-icon">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Inactive Subscribers</h3>
+                    <p id="inactiveSubscribersCount" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon blocked-icon">
+                    <i class="fas fa-user-lock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Blocked Users</h3>
+                    <p id="blockedUsersCount" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon renewal-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pending Renewals</h3>
+                    <p id="pendingRenewalsCount" class="stat-number">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search, Filter Section, Queries -->
+        <div class="subscriber-filter-section">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="subscriber-search" placeholder="Search by Name or Mobile">
+            </div>
+            
+            <div class="filter-controls">
+                <select id="planFilter" class="subscriber-filter-dropdown">
+                    <option value="">All Plans</option>
+                    <!-- Dynamic Plan Options will be populated by JavaScript -->
+                </select>
+                
+                <select id="statusFilter" class="subscriber-filter-dropdown" onchange="bulkUpdateStatus()" disabled>
+                    <option value="">Change Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+
+                <!-- Blocked Users Button -->
+                <button class="action-btn blocked-btn" onclick="toggleBlockedUsersTable()">
+                    <i class="fas fa-user-lock"></i> Blocked Users
+                </button>
+            </div>
+        </div>
+
+        <!-- Subscriber Table -->
+        <div class="subscriber-table-container">
+            <table class="subscriber-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+                        <th>Name</th>
+                        <th>Mobile Number</th>
+                        <th>Current Plan</th>
+                        <th>Last Recharge</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="subscribersTable">
+                    <!-- Dynamic subscriber rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Blocked Users Table (initially hidden) -->
+        <div class="blocked-users-container" id="blockedUsersContainer" style="display: none;">
+            <div class="blocked-header">
+                <h2><i class="fas fa-user-lock"></i> Blocked Users</h2>
+                <button class="close-blocked-btn" onclick="toggleBlockedUsersTable()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <table class="subscriber-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Mobile Number</th>
+                        <th>Current Plan</th>
+                        <th>Last Recharge</th>
+                        <th>Block Date</th>
+                        <th>Block Reason</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="blockedUsersTable">
+                    <!-- Dynamic blocked user rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="subscriber-pagination" id="pagination">
+            <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+            <!-- Dynamic page numbers will be added by JavaScript -->
+            <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <!-- View Subscriber History Modal -->
+        <div id="historyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-history"></i> Recharge History</h2>
+                    <span class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></span>
+                </div>
+
+                <div class="user-info-strip">
+                    <div class="user-detail">
+                        <span class="label">User:</span>
+                        <span id="modalUserDetails" class="value"></span>
+                    </div>
+                    <div class="user-detail">
+                        <span class="label">Current Plan:</span>
+                        <span id="modalUserPlan" class="value plan-badge"></span>
+                    </div>
+                    <div class="user-detail">
+                        <span class="label">Status:</span>
+                        <span id="modalUserStatus" class="value status-badge"></span>
+                    </div>
+                </div>
+
+                <div class="modal-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plan Name</th>
+                                <th>Recharge Date</th>
+                                <th>Amount</th>
+                                <th>Payment Mode</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <!-- Dynamic recharge history rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="modal-actions">
+                    <button class="export-btn csv-btn" onclick="exportCSV()">
+                        <i class="fas fa-file-csv"></i> Export as CSV
+                    </button>
+                    <button class="export-btn pdf-btn" onclick="exportPDF()">
+                        <i class="fas fa-file-pdf"></i> Export as PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Overlay -->
+        <div id="notificationOverlay" class="notification-overlay"></div>
+
+        <!-- Notification Popup -->
+        <div id="notificationPopup" class="notification-popup" style="display: none;">
+            <div class="notification-header">
+                <span>Notifications</span>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="notification-content" id="notificationList">
+                <!-- Notifications will be dynamically added by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Main JavaScript File -->
+    <script src="sub-management.js"></script>
+</body>
+</html>

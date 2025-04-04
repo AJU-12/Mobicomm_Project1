@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selected Pack</title>
+    <link rel="stylesheet" href="pack-details.css">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Righteous&display=swap"
+    rel="stylesheet"
+  />
+  <link
+  href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap"
+  rel="stylesheet"
+/>
+</head>
+<body>
+
+    <!-- Header (Unchanged) -->
+    <header>
+        <nav>
+          <div class="logo">Mobicomm</div>
+          <ul class="nav-links">
+            <li><a href="../home-page/home.html">Home</a></li>
+            <li><a href="#" class="active">Recharge Plans</a></li>
+            <li><a href="../support-page/support.html">Support</a></li>
+          </ul>
+          <button class="login-button" onclick="login()">Login</button>
+        </nav>
+      </header>
+  
+      <!-- Background Video (Unchanged) -->
+      <video autoplay loop muted playsinline class="bg-video">
+        <source src="Peach Ash Grey Gradient Color and Style Video Background (1).mp4" type="video/mp4" />
+      </video>
+
+<div class="container">
+    <div class="hdr">
+        <h1>selected pack</h1>
+    </div>
+    
+    <div class="pack-card">
+        <div class="price-box" id="pack-price">
+            <span>Loading...</span>
+        </div>
+        <div class="pack-details">
+            <h2 id="pack-name">Loading...</h2>
+            <p id="pack-data"></p>
+            <p id="pack-validity"></p>
+        </div>
+        <!-- Badge as direct child of pack-card -->
+        <div id="pack-badge" class="plan-badge"></div>
+    </div>
+
+    <div class="mobile-details">
+        <h2>mobile number details</h2>
+        <div class="input-group">
+            <input required type="text" name="text" autocomplete="off" class="input">
+            <label class="user-label">enter mobile number</label>
+        </div>
+        <!-- <p class="info-text">benefits are updated for the selected pack is displayed.</p> -->
+        <div class="actions">
+            <button class="confirm-btn" id="navi-paygate">confirm</button>
+            <a href="rechargeplans.html" class="go-back">go back</a>
+        </div>
+    </div>
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const packPrice = document.getElementById("pack-price");
+    const packName = document.getElementById("pack-name");
+    const packData = document.getElementById("pack-data");
+    const packValidity = document.getElementById("pack-validity");
+    const packBadge = document.getElementById("pack-badge");
+    const mobileInput = document.querySelector(".input");
+    const confirmBtn = document.querySelector(".confirm-btn");
+
+    const loggedInUser = localStorage.getItem("loggedInUser");
+
+    if (loggedInUser) {
+        mobileInput.value = loggedInUser;
+    }
+
+    // Error message setup
+    const errorMsg = document.createElement("p");
+    errorMsg.className = "error-message";
+    errorMsg.style.color = "#e53935";
+    errorMsg.style.fontSize = "0.9rem";
+    errorMsg.style.marginTop = "-15px";
+    errorMsg.style.marginBottom = "15px";
+    errorMsg.style.display = "none";
+    document.querySelector(".input-group").after(errorMsg);
+
+    // Loader overlay setup
+    const loaderOverlay = document.createElement("div");
+    loaderOverlay.className = "loader-overlay";
+    loaderOverlay.innerHTML = `
+        <div class="loader-spinner"></div>
+        <p>Please wait...</p>
+    `;
+    loaderOverlay.style.position = "fixed";
+    loaderOverlay.style.top = "0";
+    loaderOverlay.style.left = "0";
+    loaderOverlay.style.width = "100%";
+    loaderOverlay.style.height = "100%";
+    loaderOverlay.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+    loaderOverlay.style.display = "flex";
+    loaderOverlay.style.flexDirection = "column";
+    loaderOverlay.style.justifyContent = "center";
+    loaderOverlay.style.alignItems = "center";
+    loaderOverlay.style.zIndex = "9999";
+    document.body.appendChild(loaderOverlay);
+
+    // Spinner styles
+    const style = document.createElement("style");
+    style.textContent = `
+        .loader-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0104e1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-overlay p {
+            margin-top: 15px;
+            font-weight: 500;
+            color: #0104e1;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Get plan details from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const planId = urlParams.get("planId");
+    const urlBadge = urlParams.get("badge");
+
+    if (!planId) {
+        packName.textContent = "No Plan Selected";
+        loaderOverlay.style.display = "none";
+        return;
+    }
+
+    try {
+        // Fetch plan details
+        const response = await fetch(`http://localhost:8085/api/mobicomm/plans/${planId}`);
+        if (!response.ok) throw new Error("Failed to fetch plan details");
+        
+        const selectedPlan = await response.json();
+        
+        // Update UI
+        packPrice.innerHTML = `<span>${selectedPlan.price || "N/A"}</span>`;
+        packName.textContent = selectedPlan.details || "Unknown Plan";
+        packData.textContent = selectedPlan.data ? `${selectedPlan.data} Data` : "No Data Info";
+        packValidity.textContent = selectedPlan.validity ? `${selectedPlan.validity} Validity` : "No Validity Info";
+
+        // Handle badge
+        const badgeText = urlBadge ? decodeURIComponent(urlBadge) : selectedPlan.badge;
+        if (badgeText) {
+            packBadge.textContent = badgeText;
+            packBadge.style.display = "block";
+            const badgeClass = badgeText.toLowerCase().trim();
+            if (badgeClass === "popular") {
+                packBadge.setAttribute("data-badge-type", "popular");
+            } else if (["best value", "best-value", "best seller"].includes(badgeClass)) {
+                packBadge.setAttribute("data-badge-type", "best value");
+            } else if (badgeClass === "hot") {
+                packBadge.setAttribute("data-badge-type", "hot");
+            } else {
+                packBadge.setAttribute("data-badge-type", badgeClass);
+            }
+        } else {
+            packBadge.style.display = "none";
+        }
+    } catch (error) {
+        console.error("Error fetching plan:", error);
+        packName.textContent = "Failed to Load Plan";
+    }
+
+    loaderOverlay.style.display = "none";
+
+    // Mobile number validation
+    mobileInput.addEventListener("input", function (e) {
+        this.value = this.value.replace(/\D/g, "").substring(0, 10);
+        errorMsg.style.display = "none";
+    });
+
+    // Prefill mobile number
+    const userMobile = localStorage.getItem("userMobile");
+    if (userMobile && userMobile.length === 10) {
+        mobileInput.value = userMobile;
+    }
+
+    // Confirm button handler
+    confirmBtn.addEventListener("click", async function (e) {
+        e.preventDefault();
+        const mobileNumber = mobileInput.value;
+
+        if (!mobileNumber || mobileNumber.length !== 10) {
+            errorMsg.textContent = "Please enter a valid 10-digit mobile number";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        loaderOverlay.style.display = "flex";
+
+        try {
+            let userId = localStorage.getItem("userId");
+            
+            if (!userId) {
+                const userResponse = await fetch(`http://localhost:8085/api/user/mobile/${mobileNumber}`);
+                if (!userResponse.ok) throw new Error("User not found");
+                const user = await userResponse.json();
+                userId = user.id;
+                localStorage.setItem("userId", userId);
+            }
+
+            // Get the plan details to pass to payment gateway
+            const planPrice = document.getElementById("pack-price").textContent.trim();
+            const planName = document.getElementById("pack-name").textContent.trim();
+            const planData = document.getElementById("pack-data").textContent.trim();
+            const planValidity = document.getElementById("pack-validity").textContent.trim();
+            
+            // Store in localStorage
+            localStorage.setItem("selectedPlanId", planId);
+            localStorage.setItem("userMobile", mobileNumber);
+            
+            // Navigate to payment gateway with all required parameters
+            window.location.href = `paymentGateway.html?planId=${planId}&planName=${encodeURIComponent(planName)}&planDuration=${encodeURIComponent(planValidity)}&planPrice=${encodeURIComponent(planPrice)}&phoneNumber=${mobileNumber}&dataAmount=${encodeURIComponent(planData)}`;
+
+        } catch (error) {
+            console.error("Error:", error);
+            errorMsg.textContent = "Error processing request. Please try again.";
+            errorMsg.style.display = "block";
+        } finally {
+            loaderOverlay.style.display = "none";
+        }
+    });
+});
+function proceedToPayment(plan) {
+    localStorage.setItem("selectedPlan", JSON.stringify(plan));
+    window.location.href = "paymentGateway.html";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="login copy.css">
+</head>
+<body>
+    <video autoplay loop muted playsinline class="bg-video">
+        <source src="Simple-Dot-[remix] (online-video-cutter.com).mp4" type="video/mp4" />
+    </video>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main-container">
+        <div class="video-section">
+            <!-- Video section is handled by the background video -->
+        </div>
+
+        <div class="login-section">
+            <div class="login-container">
+                <h1 class="login-title">Admin Portal</h1>
+                
+                <!-- Admin ID Form -->
+                <form id="adminIdForm">
+                    <p class="login-subtitle">Enter your Admin ID</p>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="adminId" 
+                            class="input-field" 
+                            placeholder="Enter Admin ID" 
+                            required 
+                            maxlength="20"
+                        />
+                        <span id="adminIdFeedback" class="input-feedback"></span>
+                    </div>
+                    <button type="submit" class="button" id="continueButton">
+                        Continue
+                    </button>
+                </form>
+
+                <!-- Password Form -->
+                <form id="passwordForm" style="display: none;">
+                    <p class="login-subtitle">Enter your password</p>
+                    <div class="input-group">
+                        <input
+                            type="password"
+                            id="password"
+                            class="input-field"
+                            placeholder="Enter password"
+                            required
+                        />
+                    </div>
+                    <button type="submit" class="button" id="loginButton">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const adminIdForm = document.getElementById("adminIdForm");
+    const passwordForm = document.getElementById("passwordForm");
+    const adminIdInput = document.getElementById("adminId");
+    const passwordInput = document.getElementById("password");
+    const adminIdFeedback = document.getElementById("adminIdFeedback");
+
+    function showToast(message, type = "error") {
+        const toastContainer = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = "fadeOut 0.3s ease-out";
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Function to check if the admin ID is registered in the database
+    async function validateAdminId(adminId) {
+        try {
+            const response = await fetch(`http://localhost:8085/api/admin/validate/${adminId}`);
+            const data = await response.json();
+            
+            if (response.ok && data.exists) {
+                return data; // Admin exists
+            } else {
+                return null; // Admin not found
+            }
+        } catch (error) {
+            console.error("Error validating admin ID:", error);
+            return null;
+        }
+    }
+
+    adminIdInput.addEventListener("input", async () => {
+        adminIdInput.value = adminIdInput.value.replace(/[^a-zA-Z0-9]/g, ""); // Remove special characters
+        const adminId = adminIdInput.value.trim();
+
+        if (adminId.length === 0) {
+            adminIdFeedback.textContent = "";
+            adminIdForm.querySelector("button").disabled = true;
+            return;
+        }
+
+        if (adminId.length > 3) {
+            const adminData = await validateAdminId(adminId);
+            if (adminData) {
+                adminIdFeedback.textContent = "✓ Admin ID verified";
+                adminIdFeedback.className = "input-feedback success";
+                adminIdForm.querySelector("button").disabled = false;
+            } else {
+                adminIdFeedback.textContent = "✗ Invalid Admin ID";
+                adminIdFeedback.className = "input-feedback error";
+                adminIdForm.querySelector("button").disabled = true;
+            }
+        } else {
+            adminIdFeedback.textContent = "Enter a valid Admin ID";
+            adminIdForm.querySelector("button").disabled = true;
+        }
+    });
+
+    adminIdForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const adminId = adminIdInput.value.trim();
+        const adminData = await validateAdminId(adminId);
+
+        if (!adminData) {
+            showToast("Invalid Admin ID");
+            return;
+        }
+
+        adminIdForm.style.display = "none";
+        passwordForm.style.display = "block";
+    });
+
+    passwordForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const adminId = adminIdInput.value.trim();
+        const password = passwordInput.value;
+
+        try {
+            const response = await fetch("http://localhost:8085/api/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    adminId: adminId, 
+                    password: password 
+                }),
+            });
+
+            if (response.ok) {
+                localStorage.setItem("loggedInAdmin", adminId);
+                window.location.href = "admin.html";
+            } else {
+                const errorData = await response.json();
+                showToast(errorData.error || "Login failed");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            showToast("Login failed. Try again later.");
+        }
+    });
+});
+    </script>
+</body>
+</html>

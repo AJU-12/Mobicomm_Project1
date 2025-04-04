@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobicomm Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="plan-management.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </div>
+    <div class="logo-container">
+        <h1>Mobicomm</h1>
+    </div>
+    <div class="profile-container" id="profileContainer">
+        <div class="profile-image" onclick="toggleDropdown()">
+            <img src="../PNGs/user.png" alt="Admin Profile">
+        </div>
+        <div class="profile-info">
+            <h3>Admin AJ</h3>
+            <p>Admin ID: #A12345</p>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <ul>
+                <li><a href="#" id="settingnav" onclick="setActive(this)"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#" onclick="setActive(this)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="sidebar-container">
+        <nav class="nav flex-column nav-container">
+            <a class="nav-link" href="admin.html" id="dashboard">
+                <i class="fas fa-home"></i> Admin Dashboard
+            </a>
+            <a class="nav-link" href="sub-managements.html" id="plansNav">
+                <i class="fas fa-users"></i> Subscribers Management
+            </a>
+            <a class="nav-link active" href="plan-managements.html" id="manageplansNav">
+                <i class="fas fa-cog"></i> Plans Management
+            </a>
+            <a class="nav-link" href="profile.html" id="profilenav">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </nav>
+    </div>
+    <div class="main-content">
+        <header class="content-header">
+            <h1 class="page-title">Plans Management</h1>
+            <p class="subtitle">Manage and organize all subscription plans in one place</p>
+        </header>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">Filters</span>
+                <button class="filter-toggle" id="toggleFilters">
+                    <i class="fa fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="filterName">Plan Name</label>
+                        <input type="text" id="filterName" class="filter-input" placeholder="Search by name...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterPrice">Price Range</label>
+                        <div class="price-range-inputs">
+                            <input type="number" id="filterPriceMin" class="filter-input" placeholder="Min">
+                            <span class="price-separator">to</span>
+                            <input type="number" id="filterPriceMax" class="filter-input" placeholder="Max">
+                        </div>
+                    </div>
+                    
+                    
+				    <div class="filter-group">
+				    <label for="filterCategory">Category</label>
+				    <select id="filterCategory" class="filter-input">
+				        <option value="">All Categories</option>
+				    </select>
+				    <div class="category-actions" style="display: flex; flex-direction: row;">
+				    
+				    <div><button type="button" class="btn-primary" onclick="openAddCategoryModal()" style="margin-top: 50px; position: relative; left:300px;" >Add Category</button></div>
+				    
+			            <div><button type="button" class="btn-danger" onclick="removeCategory()" style="margin-top: 50px; margin-left:20px; position: relative; left:300px;">Remove Category</button></div>
+				        
+
+				    </div>
+			     	</div>
+
+                    <div class="filter-group">
+                        <label for="filterStatus">Status</label>
+                        <select id="filterStatus" class="filter-input">
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                
+			    
+                <div class="filter-actions">
+                    <button class="filter-clear-btn" onclick="clearFilters()">Clear Filters</button>
+                    <button class="filter-apply-btn" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+        <div class="action-bar">
+            <div class="results-info">
+                <span id="resultsCount">6</span> plans found
+            </div>
+            <div class="action-buttons">
+                <div class="dropdown" id="exportDropdown">
+                    <button class="export-btn dropdown-toggle" onclick="toggleExportDropdown()">
+                        <i class="fa fa-download"></i> Export <i class="fa fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="exportDropdownMenu">
+                        <button class="dropdown-item" onclick="exportToExcel()">
+                            <i class="fa fa-file-excel"></i> Export as Excel
+                        </button>
+                        <button class="dropdown-item" onclick="exportToPDF()">
+                            <i class="fa fa-file-pdf"></i> Export as PDF
+                        </button>
+                    </div>
+                </div>
+                <button class="add-plan-btn" onclick="openAddPlanModal()">
+                    <i class="fa fa-plus"></i> Add Plan
+                </button>
+            </div>
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="table">
+                <i class="fa fa-list"></i> Table View
+            </button>
+           <button class="view-btn" data-view="cards" onclick="setView('cards')">Card View</button>
+        </div>
+        <div class="plans-table-container" id="tableView">
+            <table class="plans-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">Plan Name <i class="fa fa-sort"></i></th>
+                        <th class="sortable" onclick="sortTable(1)">Category <i class="fa fa-sort"></i></th>
+                        <th class="sortable" onclick="sortTable(2)">Price <i class="fa fa-sort"></i></th>
+                        <th class="sortable" onclick="sortTable(3)">Validity <i class="fa fa-sort"></i></th>
+                        <th>Data Benefits</th>
+                        <th>Features</th>
+                        <th class="sortable" onclick="sortTable(6)">Status <i class="fa fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="plansTable">
+                </tbody>
+            </table>
+        </div>
+        <div class="plans-cards-container" id="cardsView" style="display: none;">
+            <div class="plans-cards-grid">
+            </div>
+        </div>
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing <span id="showingStart">1</span> to <span id="showingEnd">6</span> of <span id="totalItems">6</span> plans
+            </div>
+            <div class="pagination" id="pagination">
+            </div>
+            <div class="pagination-options">
+                <label for="itemsPerPage">Items per page:</label>
+                <select id="itemsPerPage" class="items-per-page">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Plan Modal -->
+    <div id="editPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Plan</h2>
+                <button class="close-btn" onclick="closeModal('editPlanModal')">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editPlanForm">
+                    <div class="form-group">
+                        <label for="editPlanName">Plan Name</label>
+                        <input type="text" id="editPlanName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanDetails">Plan Details</label>
+                        <input type="text" id="editPlanDetails" name="details" required>
+                    </div>
+                    <div class="form-group">
+    <label for="editPlanCategory">Category</label>
+		<select id="editPlanCategory" name="category" required>
+		    <option value="" disabled selected>Select Category</option>
+		</select>
+</div>
+                    <div class="form-group">
+                        <label for="editPlanPrice">Price (₹)</label>
+                        <input type="number" id="editPlanPrice" name="price" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanValidity">Validity</label>
+                        <input type="text" id="editPlanValidity" name="validity" required placeholder="e.g., 28 days">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanData">Data Benefits</label>
+                        <input type="text" id="editPlanData" name="data" placeholder="e.g., 1.5GB/day">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanBadge">Badge</label>
+                        <input type="text" id="editPlanBadge" name="badge" placeholder="e.g., Best Seller">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanStatus">Status</label>
+                        <select id="editPlanStatus" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlanFeatures">Features</label>
+                        <input type="text" id="editPlanFeatures" name="features" placeholder="e.g., Unlimited calls + SMS benefits">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+    <button type="button" class="btn-secondary" onclick="closeModal('editPlanModal')">Cancel</button>
+    <button type="button" class="btn-primary" onclick="saveEditPlan()">Save Changes</button>
+</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Plan Modal -->
+    <div id="addPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Plan</h2>
+                <button class="close-btn" onclick="closeModal('addPlanModal')">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addPlanForm">
+                    <div class="form-group">
+                        <label for="addPlanName">Plan Name</label>
+                        <input type="text" id="addPlanName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanDetails">Plan Details</label>
+                        <input type="text" id="addPlanDetails" name="details" required>
+                    </div>
+                  <div class="form-group">
+					    <label for="addPlanCategory">Category</label>
+					    <select id="addPlanCategory" name="category" required>
+					        <option value="" disabled selected>Select Category</option>
+					    </select>
+				  </div>
+
+                    <div class="form-group">
+                        <label for="addPlanPrice">Price (₹)</label>
+                        <input type="number" id="addPlanPrice" name="price" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanValidity">Validity</label>
+                        <input type="text" id="addPlanValidity" name="validity" required placeholder="e.g., 28 days">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanData">Data Benefits</label>
+                        <input type="text" id="addPlanData" name="data" placeholder="e.g., 1.5GB/day">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanFeatures">Features</label>
+                        <input type="text" id="addPlanFeatures" name="features" placeholder="e.g., Unlimited calls + SMS benefits">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanBadge">Badge</label>
+                        <input type="text" id="addPlanBadge" name="badge" placeholder="e.g., Best Seller">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPlanStatus">Status</label>
+                        <select id="addPlanStatus" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+    <button type="button" class="btn-secondary" onclick="closeModal('addPlanModal')">Cancel</button>
+    <button type="button" class="btn-primary" onclick="saveNewPlan()">Add Plan</button>
+</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmation</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmBtn" class="btn-primary">Confirm</button>
+                <button id="cancelBtn" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+     <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Category</h2>
+            <button class="close-btn" onclick="closeModal('addCategoryModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addCategoryForm">
+                <div class="form-group">
+                    <label for="newCategoryName">Category Name</label>
+                    <input type="text" id="newCategoryName" name="categoryName" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-secondary" onclick="closeModal('addCategoryModal')">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveNewCategory()">Add Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+    
+    <script src="plan-management.js"></script>
+
+</body>
+</html>

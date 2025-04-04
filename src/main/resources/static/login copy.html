@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login with Video</title>
+    <link rel="stylesheet" href="login copy.css" />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
+    ></script>
+    <script type="text/javascript">
+      (function () {
+        emailjs.init({
+          publicKey: "T5e2FgDlCSqCvJyjM",
+        });
+      })();
+    </script>
+  </head>
+  <body>
+
+    
+    <video autoplay loop muted playsinline class="bg-video">
+      <source
+        src="Peach Ash Grey Gradient Color and Style Video Background (1).mp4"
+        type="video/mp4"
+      />
+    </video>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main-container">
+      <div class="video-section">
+
+      </div>
+
+      <div class="login-section">
+        <div class="login-container">
+          <h1 class="login-title">Login</h1>
+
+          <!-- Phone Number Form -->
+          <form id="phoneForm">
+            <p class="login-subtitle">
+              Please enter your mobile number to receive an OTP
+            </p>
+            <div class="input-group">
+              <input
+                type="tel"
+                id="phoneNumber"
+                class="input-field"
+                placeholder="Enter mobile number"
+                maxlength="10"
+                required
+              />
+              <span id="numberFeedback" class="input-feedback"></span>
+            </div>
+            <button type="submit" class="button" id="sendOtpButton" disabled>
+              Send OTP
+            </button>
+          </form>
+
+          <!-- OTP Form -->
+          <form id="otpForm">
+            <p class="login-subtitle">
+              Enter the OTP sent to your mobile number
+            </p>
+            <div class="input-group">
+              <input
+                type="text"
+                id="otp"
+                class="input-field"
+                placeholder="Enter 6-digit OTP"
+                maxlength="6"
+                required
+              />
+            </div>
+            <button type="submit" class="button" id="verifyOtpButton">
+              Verify OTP
+            </button>
+            <a class="resend-link" id="resendOtp">Resend OTP</a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="login copy.js"></script>
+  </body>
+</html>
